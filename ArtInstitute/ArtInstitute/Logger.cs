@@ -1,19 +1,21 @@
+using System.Collections.Concurrent;
+
 public static class Logger
 {
-    private static readonly object logLock = new object();
+    private static readonly BlockingCollection<string> logQueue = new();
     private static readonly string logPath = "server_log.txt";
+    private static readonly Thread loggerThread;
+    private static volatile bool running = true;
+
 
     static Logger()
     {
         try
         {
-            using (var stream = File.Open(logPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
-            {
-                using (var writer = new StreamWriter(stream))
-                {
-                    writer.WriteLine($"--- Log zapocet: {DateTime.Now} ---");
-                }
-            }
+            File.WriteAllText(logPath, $"--- Log zapocet: {DateTime.Now} ---\n");
+            loggerThread = new Thread(ProcessLogs);
+            loggerThread.IsBackground = true;
+            loggerThread.Start();
         }
         catch (Exception ex)
         {
@@ -23,20 +25,28 @@ public static class Logger
 
     public static void Log(string message)
     {
-        string logLine = $"[{DateTime.Now:HH:mm:ss}] [Nit {Thread.CurrentThread.ManagedThreadId}] {message}";
-        
-        lock (logLock)
+        string logLine = $"[{DateTime.Now:HH:mm:ss}] " + $"[Nit {Thread.CurrentThread.ManagedThreadId}] " + message;
+        logQueue.Add(logLine);
+    }
+    private static void ProcessLogs()
+    {
+        using var writer = new StreamWriter(new FileStream(logPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
+        while (running || logQueue.Count > 0)
         {
-            Console.WriteLine(logLine);
-
-            try 
+            try
             {
-                File.AppendAllLines(logPath, new[] { logLine });
+                if (logQueue.TryTake(out string? log, 500))
+                {
+                    Console.WriteLine(log);
+                    writer.WriteLine(log);
+                    writer.Flush();
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Greška pri upisu u fajl: {ex.Message}");
-            }
+            catch (Exception ex) { Console.WriteLine($"Logger greska: {ex.Message}"); }
         }
+    }
+    public static void Shutdown()
+    {
+        running = false; loggerThread.Join();
     }
 }

@@ -24,7 +24,8 @@ public class ArtCache
     private readonly Dictionary<string, CacheEntry> data;
     private readonly LinkedList<string> lruList;
     private readonly object lockObj = new object();
-    private readonly Timer cleanupTimer;
+    private readonly Thread cleanupThread;
+    private volatile bool running = true;
 
     public ArtCache(int maxSize, TimeSpan maxLifeTime)
     {
@@ -33,23 +34,22 @@ public class ArtCache
         data = new Dictionary<string, CacheEntry>();
         lruList = new LinkedList<string>();
 
-        cleanupTimer = new Timer(
-            BackgroundCleanup,
-            null,
-            TimeSpan.FromHours(1),
-            TimeSpan.FromHours(1));
+        cleanupThread = new Thread(BackgroundCleanup);
+        cleanupThread.IsBackground = true;
+        cleanupThread.Start();
     }
 
     public bool TryGet(string key, out string value)
     {
-        lock (lockObj)
+        if (data.TryGetValue(key, out var entry))
         {
-            if (data.TryGetValue(key, out var entry))
+            lock (lockObj)
             {
+
 
                 lruList.Remove(entry.Node);
                 lruList.AddFirst(entry.Node);
-                
+
                 value = entry.Value;
                 return true;
             }
@@ -91,21 +91,21 @@ public class ArtCache
         data.Remove(key);
     }
 
-    private void BackgroundCleanup(object? state)
+    private void BackgroundCleanup()
     {
-        lock (lockObj)
+        while (running)
         {
-            DateTime now = DateTime.Now;
-            
-            var keysToRemove = data
-                .Where(pair => now - pair.Value.CreatedAt > maxLifeTime)
-                .Select(pair => pair.Key)
-                .ToList();
+            Thread.Sleep(TimeSpan.FromMinutes(5));
 
-            if (keysToRemove.Any())
+            lock (lockObj)
             {
-                Console.WriteLine($"\n[Cleanup Thread] Izbacujem {keysToRemove.Count} zastarelih elemenata...");
-                
+                DateTime now = DateTime.Now;
+
+                var keysToRemove = data
+                    .Where(pair => now - pair.Value.CreatedAt > maxLifeTime)
+                    .Select(pair => pair.Key)
+                    .ToList();
+
                 foreach (var key in keysToRemove)
                 {
                     if (data.TryGetValue(key, out var entry))
@@ -113,7 +113,19 @@ public class ArtCache
                         RemoveEntry(key, entry);
                     }
                 }
+
+                if (keysToRemove.Count > 0)
+                {
+                    Logger.Log($"Cleanup thread obrisao " + $"{keysToRemove.Count} elemenata");
+                }
             }
         }
     }
+
+    public void Shutdown()
+    {
+        running = false;
+        cleanupThread.Join();
+    }
+
 }
