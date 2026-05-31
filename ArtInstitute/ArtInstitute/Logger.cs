@@ -42,11 +42,15 @@ public static class Logger
                     writer.Flush();
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"Logger greska: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Logger greska: {ex.Message}");
+            }
         }
     }
     public static void Shutdown()
     {
-        running = false; loggerThread.Join();
+        running = false;
+        loggerThread.Join();
     }
 }

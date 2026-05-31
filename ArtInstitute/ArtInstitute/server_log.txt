@@ -1,0 +1,17 @@
+--- Log zapocet: 5/30/2026 11:17:36 AM ---
+[11:17:37] [Nit 1] Server pokrenut
+[11:17:46] [Nit 23] ContinueWith kesiranje: q:picasso
+[11:17:46] [Nit 23] Obrada gotova: q:picasso, 784.1247ms
+[11:17:50] [Nit 10] Obrada gotova: q:picasso, 0.715ms
+[11:18:02] [Nit 11] Obrada gotova: q:picasso, 0.7217ms
+[11:18:02] [Nit 13] Obrada gotova: q:picasso, 0.5752ms
+[11:18:03] [Nit 14] Obrada gotova: q:picasso, 0.6343ms
+[11:18:03] [Nit 16] Obrada gotova: q:picasso, 0.7177ms
+[11:18:03] [Nit 18] Obrada gotova: q:picasso, 0.6287ms
+[11:18:03] [Nit 20] Obrada gotova: q:picasso, 0.5513ms
+[11:18:03] [Nit 23] Obrada gotova: q:picasso, 0.4481ms
+[11:18:04] [Nit 10] Obrada gotova: q:picasso, 0.4077ms
+[11:18:04] [Nit 11] Obrada gotova: q:picasso, 0.4423ms
+[11:18:04] [Nit 13] Obrada gotova: q:picasso, 0.5538ms
+[11:18:04] [Nit 14] Obrada gotova: q:picasso, 0.4227ms
+[11:18:04] [Nit 16] Obrada gotova: q:picasso, 0.8159ms

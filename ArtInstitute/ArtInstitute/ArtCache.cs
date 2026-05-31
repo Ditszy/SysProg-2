@@ -41,11 +41,11 @@ public class ArtCache
 
     public bool TryGet(string key, out string value)
     {
-        if (data.TryGetValue(key, out var entry))
-        {
-            lock (lockObj)
-            {
 
+        lock (lockObj)
+        {
+            if (data.TryGetValue(key, out var entry))
+            {
 
                 lruList.Remove(entry.Node);
                 lruList.AddFirst(entry.Node);
@@ -125,7 +125,6 @@ public class ArtCache
     public void Shutdown()
     {
         running = false;
-        cleanupThread.Join();
     }
 
 }
