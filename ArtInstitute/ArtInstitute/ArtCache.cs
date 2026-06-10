@@ -41,18 +41,18 @@ public class ArtCache
 
     public bool TryGet(string key, out string value)
     {
-
-        lock (lockObj)
+        if (data.TryGetValue(key, out var entry))
         {
-            if (data.TryGetValue(key, out var entry))
+            lock (lockObj)
             {
-
-                lruList.Remove(entry.Node);
-                lruList.AddFirst(entry.Node);
-
-                value = entry.Value;
-                return true;
+                if (lruList.First != entry.Node) //provera da li je na pocetku
+                {
+                    lruList.Remove(entry.Node);
+                    lruList.AddFirst(entry.Node);
+                }
             }
+            value = entry.Value;
+            return true;
         }
         value = null;
         return false;

@@ -97,7 +97,8 @@ class Program
         var tasks = new Task[count];
         for (int i = 0; i < count; i++)
         {
-            tasks[i] = Task.Run(async () =>
+            // Alternativa za Task.Run, mnogo bolje radi
+            tasks[i] = Task.Factory.StartNew(async () =>
             {
                 foreach (var context in requestQueue.GetConsumingEnumerable())
                 {
@@ -115,7 +116,27 @@ class Program
                         context.Response.Close();
                     }
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
+
+            // tasks[i] = Task.Run(async () =>
+            // {
+            //     foreach (var context in requestQueue.GetConsumingEnumerable())
+            //     {
+            //         try
+            //         {
+            //             await ProcessRequestAsync(context);
+            //         }
+            //         catch (Exception ex)
+            //         {
+            //             Logger.Log($"Greska obrade: {ex.Message}");
+            //             await Utils.SendResponseAsync(context, "{\"error\":\"Server greska\"}", HttpStatusCode.InternalServerError);
+            //         }
+            //         finally
+            //         {
+            //             context.Response.Close();
+            //         }
+            //     }
+            // });
         }
         return tasks;
     }
