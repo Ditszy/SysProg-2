@@ -116,7 +116,7 @@ class Program
                         context.Response.Close();
                     }
                 }
-            }, TaskCreationOptions.LongRunning);
+            }, TaskCreationOptions.LongRunning).Unwrap();
 
             // tasks[i] = Task.Run(async () =>
             // {
